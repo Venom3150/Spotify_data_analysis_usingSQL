@@ -96,7 +96,7 @@ SELECT track, `stream`
 ```sql
 SELECT album, artist
     FROM spotify_copied_dataset;
-``
+```
 
 3. Get the total number of comments for tracks where `licensed = TRUE`.
 MySQL does not take the boolean values as true or false, instead it takes
@@ -121,37 +121,110 @@ SELECT artist, count(track)
     GROUP BY artist;
 ```
 
-### Medium Level
+### Medium Level Queries
 1. Calculate the average danceability of tracks in each album.
-2. Find the top 5 tracks with the highest energy values.
-3. List all tracks along with their views and likes where `official_video = TRUE`.
-4. For each album, calculate the total views of all associated tracks.
-5. Retrieve the track names that have been streamed on Spotify more than YouTube.
+```sql
+SELECT album,  ROUND(AVG(danceability),3) as avg_danceability
+FROM spotify_copied_dataset
+GROUP BY album
+ORDER BY 2 DESC;
+```
 
-### Advanced Level
+2. Find the top 5 tracks with the highest energy values.
+```sql
+SELECT *
+FROM (
+SELECT  track, AVG(energy) AS avg_energy
+FROM spotify_copied_dataset
+GROUP BY 1
+ORDER BY 2 DESC) AS energy
+LIMIT 5;
+```
+
+3. List all tracks along with their views and likes where `official_video = TRUE`.
+```sql
+SELECT track, 
+	SUM(views) AS total_views, 
+    SUM(likes) AS total_likes
+FROM spotify_copied_dataset
+WHERE official_video = 1
+GROUP BY 1
+ORDER BY 2 DESC; 
+```
+
+4. For each album, calculate the total views of all associated tracks.
+```sql
+SELECT album, SUM(views) as total_views_per_album
+FROM spotify_copied_dataset
+GROUP BY album
+ORDER BY 2 desc;
+```
+
+5. Retrieve the track names that have been streamed on Spotify more than YouTube.
+```sql
+SELECT *
+FROM(
+SELECT track, 
+	SUM(CASE WHEN most_played_on = 'Spotify' THEN stream ELSE 0 END) AS stream_on_spotify,
+	SUM(CASE WHEN most_played_on = 'Youtube' THEN stream ELSE 0 END) AS stream_on_youtube
+FROM spotify_copied_dataset
+GROUP BY 1) AS t1
+WHERE stream_on_spotify > stream_on_youtube
+	 AND stream_on_youtube != 0;
+```
+
+### Advanced Level Queries 
 1. Find the top 3 most-viewed tracks for each artist using window functions.
+```sql
+SELECT artist, track, total_views
+FROM(
+	SELECT *, 
+		DENSE_RANK() OVER(PARTITION BY artist ORDER BY total_views DESC) AS `rank`
+	FROM(
+		SELECT artist, track, SUM(views) as total_views
+		FROM spotify_copied_dataset
+		GROUP BY artist, track) as t1) AS t2
+WHERE `rank` <=3;
+```
+
 2. Write a query to find tracks where the liveness score is above the average.
+```sql
+SELECT track, artist, ROUND(liveness,3) as liveness
+FROM spotify_copied_dataset 
+	WHERE ROUND(liveness,3) >
+			(SELECT ROUND(AVG(liveness),3) AS avg_liveness
+			FROM spotify_copied_dataset) ;
+            
+```
+
 3. **Use a `WITH` clause to calculate the difference between the highest and lowest energy values for tracks in each album.**
 ```sql
-WITH cte
-AS
-(SELECT 
-	album,
-	MAX(energy) as highest_energy,
-	MIN(energy) as lowest_energery
-FROM spotify
-GROUP BY 1
-)
-SELECT 
-	album,
-	highest_energy - lowest_energery as energy_diff
-FROM cte
-ORDER BY 2 DESC
+WITH energy_difference AS (
+	SELECT album, max(energy) max_energy, min(energy) min_energy
+    FROM spotify_copied_dataset
+    GROUP BY album)
+SELECT *, 
+	ROUND((max_energy - min_energy),4) as energy_diff
+FROM energy_difference
+ORDER BY energy_diff DESC;
 ```
-   
-5. Find tracks where the energy-to-liveness ratio is greater than 1.2.
-6. Calculate the cumulative sum of likes for tracks ordered by the number of views, using window functions.
 
+4. Find tracks where the energy-to-liveness ratio is greater than 1.2.
+```sql
+SELECT track, (ROUND(energy/liveness,2)) as energy_to_liveness
+FROM spotify_copied_dataset
+WHERE energy/liveness > 1.2
+ORDER BY 2 DESC;
+```
+
+5. Calculate the cumulative sum of likes for tracks ordered by the number of views, using window functions.
+```sql
+SELECT track,likes,  
+	SUM(likes) over ( ORDER BY views DESC) cumulative_likes, 
+	ROW_NUMBER()over() as row_num
+from spotify_copied_dataset 
+ORDER BY views DESC;
+```
 
 Here’s an updated section for your **Spotify Advanced SQL Project and Query Optimization** README, focusing on the query optimization task you performed. You can include the specific screenshots and graphs as described.
 

@@ -47,6 +47,23 @@ Before diving into SQL, it’s important to understand the dataset thoroughly. T
 - `Album_type`: The type of album (e.g., single or album).
 - Various metrics such as `danceability`, `energy`, `loudness`, `tempo`, and more.
 
+```sql
+SELECT DISTINCT artist
+FROM spotify_copied_dataset;
+
+SELECT DISTINCT album 
+FROM spotify_copied_dataset;
+
+SELECT DISTINCT album_type
+FROM spotify_copied_dataset;
+
+SELECT AVG(duration_min), MAX(duration_min), MIN(duration_min)
+FROM spotify_copied_dataset;
+
+SELECT DISTINCT channel
+FROM spotify_copied_dataset;
+```
+
 ### 4. Querying the Data
 After the data is inserted, various SQL queries can be written to explore and analyze the data. Queries are categorized into **easy**, **medium**, and **advanced** levels to help progressively develop SQL proficiency.
 

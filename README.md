@@ -1,4 +1,4 @@
-# Spotify Advanced SQL Project and Query Optimization P-6
+# Spotify Advanced SQL Project and Query Optimization 
 Project Category: Advanced
 [Click Here to get Dataset](https://www.kaggle.com/datasets/sanjanchaudhari/spotify-dataset)
 
@@ -87,10 +87,39 @@ In advanced stages, the focus shifts to improving query performance. Some optimi
 
 ### Easy Level
 1. Retrieve the names of all tracks that have more than 1 billion streams.
+```sql
+SELECT track, `stream`
+    FROM spotify_copied_dataset
+    WHERE stream > 1000000000;
+```
 2. List all albums along with their respective artists.
+```sql
+SELECT album, artist
+    FROM spotify_copied_dataset;
+``
+
 3. Get the total number of comments for tracks where `licensed = TRUE`.
+MySQL does not take the boolean values as true or false, instead it takes
+values 1 and 0.
+```sql
+SELECT SUM(comments) AS total_comments
+    FROM spotify_copied_dataset
+    WHERE licensed = 1;
+```
+
 4. Find all tracks that belong to the album type `single`.
+```sql
+SELECT track
+    FROM spotify_copied_dataset
+    WHERE album_type = 'single';
+```
+
 5. Count the total number of tracks by each artist.
+```sql
+SELECT artist, count(track)
+    FROM spotify_copied_dataset
+    GROUP BY artist;
+```
 
 ### Medium Level
 1. Calculate the average danceability of tracks in each album.

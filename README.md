@@ -240,7 +240,7 @@ To improve query performance, we carried out the following optimization process:
         - Actual time: **18.7 ms**
     - Below is the result of the `EXPLAIN ANALYZE` result before optimization:
   ```
-      -> Limit: 25 row(s)  (cost=2110 rows=25) (actual time=18.7..18.7 rows=1 loops=1)
+  -> Limit: 25 row(s)  (cost=2110 rows=25) (actual time=18.7..18.7 rows=1 loops=1)
    	 -> Sort: spotify_copied_dataset.stream DESC, limit input to 25 row(s) per chunk
   			(cost=2110 rows=20222) (actual time=18.7..18.7 rows=1 loops=1)
         	-> Filter: ((spotify_copied_dataset.most_played_on = 'Youtube') and
@@ -248,21 +248,27 @@ To improve query performance, we carried out the following optimization process:
 	  			(actual time=0.0736..18.7 rows=1 loops=1)
             		-> Table scan on spotify_copied_dataset  (cost=2110 rows=20222)
   					(actual time=0.054..16.1 rows=20592 loops=1)
-
-
+  ``` 
 - **Index Creation on the `artist` Column**
     - To optimize the query performance, we created an index on the `artist` column. This ensures faster retrieval of rows where the artist is queried.
     - **SQL command** for creating the index:
       ```sql
-      CREATE INDEX idx_artist ON spotify_tracks(artist);
+      CREATE INDEX idx_artist ON spotify_copied_dataset(artist);
       ```
 
 - **Performance Analysis After Index Creation**
     - After creating the index, we ran the same query again and observed significant improvements in performance:
-        - Execution time (E.T.): **0.153 ms**
-        - Planning time (P.T.): **0.152 ms**
-    - Below is the **screenshot** of the `EXPLAIN` result after index creation:
-      ![EXPLAIN After Index](https://github.com/najirh/najirh-Spotify-Data-Analysis-using-SQL/blob/main/spotify_explain_after_index.png)
+        - Actual time: **0.0226 ms**
+    - Below is the result of the `EXPLAIN ANALYZE` function after index creation:
+```
+-> Limit: 25 row(s)  (cost=2.6 rows=10) (actual time=0.0869..0.087 rows=1 loops=1)
+    -> Sort: spotify_copied_dataset.stream DESC, limit input to 25 row(s) per chunk
+		(cost=2.6 rows=10) (actual time=0.0862..0.0862 rows=1 loops=1)
+        -> Filter: (spotify_copied_dataset.most_played_on = 'Youtube')  (cost=2.6 rows=10)
+			(actual time=0.0621..0.0735 rows=1 loops=1)
+            -> Index lookup on spotify_copied_dataset using idx_artist (artist='Gorillaz')
+			(cost=2.6 rows=10) (actual time=0.0477..0.0703 rows=10 loops=1)
+```
 
 - **Graphical Performance Comparison**
     - A graph illustrating the comparison between the initial query execution time and the optimized query execution time after index creation.

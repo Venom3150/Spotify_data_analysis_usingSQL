@@ -235,12 +235,20 @@ Here’s an updated section for your **Spotify Advanced SQL Project and Query Op
 To improve query performance, we carried out the following optimization process:
 
 - **Initial Query Performance Analysis Using `EXPLAIN`**
-    - We began by analyzing the performance of a query using the `EXPLAIN` function.
-    - The query retrieved tracks based on the `artist` column, and the performance metrics were as follows:
-        - Execution time (E.T.): **7 ms**
-        - Planning time (P.T.): **0.17 ms**
-    - Below is the **screenshot** of the `EXPLAIN` result before optimization:
-      ![EXPLAIN Before Index](https://github.com/najirh/najirh-Spotify-Data-Analysis-using-SQL/blob/main/spotify_explain_before_index.png)
+    - We began by analyzing the performance of a query using the `EXPLAIN ANALYZE` function.
+    - The query retrieved tracks based on the `artist` column, and the performance metrics was as follows:
+        - Actual time: **18.7 ms**
+    - Below is the result of the `EXPLAIN ANALYZE` result before optimization:
+  ```
+      -> Limit: 25 row(s)  (cost=2110 rows=25) (actual time=18.7..18.7 rows=1 loops=1)
+   	 -> Sort: spotify_copied_dataset.stream DESC, limit input to 25 row(s) per chunk
+  			(cost=2110 rows=20222) (actual time=18.7..18.7 rows=1 loops=1)
+        	-> Filter: ((spotify_copied_dataset.most_played_on = 'Youtube') and
+	  			(spotify_copied_dataset.artist = 'Gorillaz'))  (cost=2110 rows=20222)
+	  			(actual time=0.0736..18.7 rows=1 loops=1)
+            		-> Table scan on spotify_copied_dataset  (cost=2110 rows=20222)
+  					(actual time=0.054..16.1 rows=20592 loops=1)
+
 
 - **Index Creation on the `artist` Column**
     - To optimize the query performance, we created an index on the `artist` column. This ensures faster retrieval of rows where the artist is queried.
